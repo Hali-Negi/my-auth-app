@@ -19,13 +19,14 @@ const dbName = process.env.MONGODB_DATABASE;
 
 const dbUri = `mongodb+srv://${dbUser}:${dbPass}@${dbHost}/${dbName}?retryWrites=true&w=majority`;
 
+
 // Connect to MongoDB
 mongoose.connect(dbUri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 // Define User schema
 const userSchema = new mongoose.Schema({
   name: String,
-  email: String,
+  email: { type: String, unique: true },
   password: String
 });
 const User = mongoose.model('User', userSchema);
@@ -69,6 +70,7 @@ app.post('/signup', async (req, res) => {
     return res.render('signup', { error: errorMessage });
   }
 
+  // console.log(' Reached validation schema');
   const schema = Joi.object({
     name: Joi.string().alphanum().min(2).max(30).required(),
     email: Joi.string().email().required(),
@@ -149,7 +151,7 @@ app.get('/logout', (req, res) => {
 });
 
 // 404 Page
-app.get('*', (req, res) => {
+app.use((req, res) => {  // Changed from app.get('*', ...) to app.use(...)
   res.status(404).render('404');
 });
 
