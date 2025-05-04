@@ -43,7 +43,7 @@ app.use(session({
   saveUninitialized: false,
   store: MongoStore.create({
     mongoUrl: dbUri,
-    ttl: 60 * 60 // 1 hour
+    ttl: 60 * 60 
   })
 }));
 
@@ -62,15 +62,12 @@ app.get('/signup', (req, res) => {
 app.post('/signup', async (req, res) => {
   const { name, email, password } = req.body;
 
+  
   if (!name || !email || !password) {
-    let errorMessage = "Please provide ";
-    if (!name) errorMessage += "a name. ";
-    if (!email) errorMessage += "an email address. ";
-    if (!password) errorMessage += "a password.";
-    return res.render('signup', { error: errorMessage });
+    return res.render('signup', { error: "Please fill in all fields." });
   }
 
-  // console.log(' Reached validation schema');
+  // Joi Validation
   const schema = Joi.object({
     name: Joi.string().alphanum().min(2).max(30).required(),
     email: Joi.string().email().required(),
@@ -143,15 +140,17 @@ app.get('/members', (req, res) => {
   res.render('members', { name, image: randomImage });
 });
 
-// Logout
 app.get('/logout', (req, res) => {
-  req.session.destroy(() => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Error destroying session:", err); 
+    }
     res.redirect('/');
   });
 });
 
 // 404 Page
-app.use((req, res) => {  // Changed from app.get('*', ...) to app.use(...)
+app.use((req, res) => {
   res.status(404).render('404');
 });
 
